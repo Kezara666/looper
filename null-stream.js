@@ -1,49 +1,38 @@
+const IcecastSource = require('icecast-source');
 const fs = require('fs');
-const net = require('net');
-const path = require('path');
-const silence = fs.readFileSync(path.join(__dirname, 'silence.mp3'));
 
-const HOST = '192.248.70.132';
-const PORT = 8000;
-const MOUNT = '/live';
-const USER = 'source';
-const PASS = 'hackme';
+const source = new IcecastSource({
+  host: '192.248.70.132',
+  port: 8000,
+  mount: '/live',
+  user: 'source',
+  password: 'hackme',
+  name: 'My Stream',
+  genre: 'Silent',
+  description: 'Silent loop',
+  format: 'mp3',
+  reconnect: true
+});
 
-function connectAndStream() {
-  const client = net.createConnection(PORT, HOST, () => {
-    console.log('Connected to Icecast server.');
+const loopStream = () => {
+  const stream = fs.createReadStream('silence.mp3');
+  stream.pipe(source, { end: false });
 
-    const headers =
-      `SOURCE ${MOUNT} HTTP/1.0\r\n` +
-      `Authorization: Basic ${Buffer.from(`${USER}:${PASS}`).toString('base64')}\r\n` +
-      `Content-Type: audio/mpeg\r\n\r\n`;
-
-    client.write(headers);
-
-    const streamSilence = () => {
-      if (client.writable) {
-        client.write(silence);
-        setTimeout(streamSilence, 1000); // 1s of silence
-      }
-    };
-
-    streamSilence();
+  stream.on('end', () => {
+    console.log('Restarting silent stream...');
+    setTimeout(loopStream, 1000); // delay to avoid flooding
   });
+};
 
-  client.on('error', (err) => {
-    console.error('Connection error:', err.message);
-    setTimeout(connectAndStream, 5000); // Reconnect on error
-  });
+source.on('connect', () => {
+  console.log('Connected to Icecast!');
+  loopStream();
+});
 
-  client.on('end', () => {
-    console.log('Disconnected from Icecast. Reconnecting...');
-    setTimeout(connectAndStream, 5000);
-  });
-}
+source.on('error', (err) => {
+  console.error('Error:', err.message);
+});
 
-try {
-  connectAndStream();
-} catch (error) {
-  console.error('An error occurred:', error.message);
-
-}
+source.on('disconnect', () => {
+  console.log('Disconnected from Icecast');
+});

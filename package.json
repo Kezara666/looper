@@ -4,5 +4,8 @@
   "main": "null-stream.js",
   "scripts": {
     "start": "node null-stream.js"
+  },
+  "dependencies": {
+    "icecast-source": "^0.1.0"
   }
 }
