@@ -5,7 +5,7 @@ const silence = fs.readFileSync(path.join(__dirname, 'silence.mp3'));
 
 const HOST = '192.248.70.132';
 const PORT = 8000;
-const MOUNT = '/souce';
+const MOUNT = '/live';
 const USER = 'source';
 const PASS = 'hackme';
 
