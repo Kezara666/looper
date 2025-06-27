@@ -1,0 +1,8 @@
+{
+  "name": "icecast-silent-stream",
+  "version": "1.0.0",
+  "main": "null-stream.js",
+  "scripts": {
+    "start": "node null-stream.js"
+  }
+}
